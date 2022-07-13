@@ -17,7 +17,6 @@ function MyApp({ Component, pageProps }) {
           lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
           photoURL: user.photoURL
         }, { merge: true }
-
       );
     }
   }, [user]);
