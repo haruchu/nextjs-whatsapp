@@ -1,10 +1,10 @@
 import styled from "styled-components";
 import React from "react";
 
-function Message({ user, mesasge }) {
+function Message({ user, message }) {
   return (
     <Container>
-      <p>{message}</p>
+      <p>{message.message}</p>
     </Container>
   );
 }

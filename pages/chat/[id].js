@@ -26,11 +26,11 @@ export default Chat;
 export async function getServerSideProps(context) {
   const ref = db.collection("chats").doc(context.query.id);
 
-  const messageRefs = await ref
+  const messageRes = await ref
     .collection("messages")
     .orderBy("timestamp", "asc")
     .get();
-  const messages = messageRefs.docs
+  const messages = messageRes.docs
     .map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -40,17 +40,16 @@ export async function getServerSideProps(context) {
       timestamp: messages.timestamp.toDate().getTime(),
     }));
 
-  const chatRefs = await ref.get();
+  const chatRes = await ref.get();
   const chat = {
-    id: chatRefs.id,
-    ...chatRefs.data(),
+    id: chatRes.id,
+    ...chatRes.data(),
   };
 
   console.log(chat, messages);
-
   return {
     props: {
-      message: JSON.stringify(messages),
+      messages: JSON.stringify(messages),
       chat: chat,
     },
   };
