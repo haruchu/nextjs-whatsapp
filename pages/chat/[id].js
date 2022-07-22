@@ -23,6 +23,8 @@ function Chat({ chat, messages }) {
 
 export default Chat;
 
+// renderされる前に呼び出される
+// https://nextjs.org/docs/basic-features/data-fetching/get-server-side-props
 export async function getServerSideProps(context) {
   const ref = db.collection("chats").doc(context.query.id);
 
