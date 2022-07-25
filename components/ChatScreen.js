@@ -6,7 +6,7 @@ import {
   MoreVertOutlined,
 } from "@material-ui/icons";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useCollection } from "react-firebase-hooks/firestore";
 import styled from "styled-components";
@@ -14,11 +14,12 @@ import { auth, db } from "../firebase";
 import Message from "./Message";
 import firebase from "firebase/compat/app";
 import getRecipientEmail from "../utils/getRecipientEmail";
-import TimeAgo from "timeago-react"
+import TimeAgo from "timeago-react";
 
 function ChatScreen({ chat, messages }) {
   const [user] = useAuthState(auth);
   const [input, setInput] = useState("");
+  const endOfMessageRef = useRef(null);
   const router = useRouter();
   // chatメッセージが追加されるたびこれが再実行される。それに伴いmessageSnapshotに関連する部分も再実行
   const [messageSnapshot] = useCollection(
@@ -28,9 +29,13 @@ function ChatScreen({ chat, messages }) {
       .collection("messages")
       .orderBy("timestamp", "asc")
   );
+
   const [recipientSnapshot] = useCollection(
-    db.collection("users").where("email", "==", getRecipientEmail(chat.users, user))
+    db
+      .collection("users")
+      .where("email", "==", getRecipientEmail(chat.users, user))
   );
+
   const showMessage = () => {
     if (messageSnapshot) {
       return messageSnapshot.docs.map((message) => (
@@ -51,6 +56,13 @@ function ChatScreen({ chat, messages }) {
     }
   };
 
+  const scrollToBottom = () => {
+    endOfMessageRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   const sendMessage = (e) => {
     e.preventDefault();
 
@@ -69,6 +81,7 @@ function ChatScreen({ chat, messages }) {
     });
 
     setInput("");
+    scrollToBottom();
   };
 
   const recipient = recipientSnapshot?.docs?.[0]?.data();
@@ -77,17 +90,24 @@ function ChatScreen({ chat, messages }) {
     <Container>
       <Header>
         {recipient ? (
-          <Avatar src={recipient?.photoURL}/>
-        ) : (<Avatar>{recipientEmail[0]}</Avatar>)}
+          <Avatar src={recipient?.photoURL} />
+        ) : (
+          <Avatar>{recipientEmail[0]}</Avatar>
+        )}
         <HeaderInfomation>
-          <h3>{ recipientEmail }</h3>
+          <h3>{recipientEmail}</h3>
           {recipientSnapshot ? (
-            <p>Last acvite: {' '}
+            <p>
+              Last acvite:{" "}
               {recipient?.lastSeen?.toDate() ? (
-                <TimeAgo datetime={recipient?.lastSeen?.toDate()}/>) : "Unavailable"
-              }
+                <TimeAgo datetime={recipient?.lastSeen?.toDate()} />
+              ) : (
+                "Unavailable"
+              )}
             </p>
-          ): (<p>Loading Last active ...</p>)}
+          ) : (
+            <p>Loading Last active ...</p>
+          )}
         </HeaderInfomation>
         <HeaderIcons>
           <IconButton>
@@ -100,7 +120,7 @@ function ChatScreen({ chat, messages }) {
       </Header>
       <MessageContainer>
         {showMessage()}
-        <EndOfMessage />
+        <EndOfMessage ref={endOfMessageRef} />
       </MessageContainer>
 
       <InputContainer>
